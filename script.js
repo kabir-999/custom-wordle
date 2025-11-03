@@ -2,28 +2,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // 👻 Halloween-themed words by length and difficulty
     const WORDS = {
         5: [ // 🎃 Round 1: 5-letter words (Warm-up)
-            'GHOST','WITCH','SKULL','GRAVE','BONES','CURSE','EERIE','GHOUL','SPOOK','MUMMY',
-            'DEMON','DEVIL','CRYPT','OUIJA','TAROT','SHADE','BLOOD','RAVEN','FANGS','CLAWS',
-            'SCARE','BROOM','CANDY','KNIFE','TREAT','TRICK','TOMBS','SCARY','SLIME','SLASH',
-            'CHILL','CHANT','HEXES','HEXED','SPELL','NOOSE','OMENS','OGRES','DREAD','HOWLS',
-            'VAPOR','ETHER','ABYSS','GLOOM','RITES','SKULK','BLACK','BLADE'
+            'GHOST','WITCH','SKULL','GRAVE','BONES','CURSE','EERIE','GHOUL','MUMMY',
+            'DEMON','DEVIL','CRYPT','OUIJA','TAROT','RAVEN','FANGS','CLAWS',
+            'BROOM','CANDY','KNIFE','TOMBS','SCARY','SLIME',
+            'CHANT','HEXES','SPELL',
+            'GLOOM'
         ],
 
         7: [ // 🕸️ Round 2: 7-letter words (Hard)
-            'VAMPIRE', 'WARLOCK', 'ZOMBIES', 'SPIRITS', 'HAUNTED',
-            'CURSING', 'GRAVEST', 'COFFINS',
-            'MONSTER', 'PUMPKIN', 'WITCHES', 'GOBLINS', 'PHANTOM', 'SPOOKED',
-            'BANSHEE','COBWEBS','RITUALS','SEANCES','HEXINGS','DEMONIC','SHADOWS','SCARIER','SHRIEKS',
-            'CASKETS','SUCCUBI','INCUBUS','FUNERAL','WRAITHS','SEVERED','ASYLUMS','CHARNEL','EERIEST',
-            'HORRORS','MORGUES','CRYPTIC','OMINOUS','HAUNTER','POSSESS','TORMENT','CULTIST','SORCERY','ENCHANT'
+            'VAMPIRE', 'ZOMBIES', 'SPIRITS', 'HAUNTED',
+            'CURSING', 'COFFINS',
+            'MONSTER','WITCHES', 'GOBLINS', 'PHANTOM', 'SPOOKED',
+            'BANSHEE','COBWEBS','RITUALS','DEMONIC','SHADOWS','SCARIER',,
+            'CASKETS','FUNERAL','EERIEST',
+            'OMINOUS','HAUNTER','POSSESS','SORCERY','ENCHANT'
         ],
 
         9: [ // 💀 Round 3: 9-letter words (Difficult)
             'NIGHTMARE', 'FRIGHTFUL', 'TERRORIZE', 'HAUNTINGS', 'DARKENING',
-            'BLOODMOON', 'GRAVEYARD', 'HYSTERICS', 'DEMONIACS',
-'HEADSTONE', 'SPELLBOOK', 'NIGHTFALL', 'SCREAMING', 'ENCHANTED',
-            'HALLOWEEN','AFTERLIFE','BLOODLUST','MOONLIGHT','CADAVERIC','TOMBSTONE','GHOSTSHIP',
-            'SORCERERS','FLESHLESS','PHANTASMS','HELLHOUND','SEANCEING','WEREWOLFS','GRAVENESS','DARKENERS'
+            'BLOODMOON', 'GRAVEYARD', 'HYSTERICS','HEADSTONE', 'SPELLBOOK', 'NIGHTFALL', 'SCREAMING', 'ENCHANTED',
+            'HALLOWEEN','AFTERLIFE','BLOODLUST','MOONLIGHT','TOMBSTONE','GHOSTSHIP',
+            'SORCERERS','FLESHLESS','HELLHOUND','WEREWOLFS','GRAVENESS','DARKENERS'
         ],
 
     };
