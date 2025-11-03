@@ -1,39 +1,95 @@
 document.addEventListener('DOMContentLoaded', () => {
     // 👻 Halloween-themed words by length and difficulty
     const WORDS = {
-        7: [ // 🕸️ Round 1: 7-letter words (Hard)
+        5: [ // 🎃 Round 1: 5-letter words (Warm-up)
+            'GHOST','WITCH','SKULL','GRAVE','BONES','CURSE','EERIE','GHOUL','SPOOK','MUMMY',
+            'DEMON','DEVIL','CRYPT','OUIJA','TAROT','SHADE','BLOOD','RAVEN','FANGS','CLAWS',
+            'SCARE','BROOM','CANDY','KNIFE','TREAT','TRICK','TOMBS','SCARY','SLIME','SLASH',
+            'CHILL','CHANT','HEXES','HEXED','SPELL','NOOSE','OMENS','OGRES','DREAD','HOWLS',
+            'VAPOR','ETHER','ABYSS','GLOOM','RITES','SKULK','BLACK','BLADE'
+        ],
+
+        7: [ // 🕸️ Round 2: 7-letter words (Hard)
             'VAMPIRE', 'WARLOCK', 'ZOMBIES', 'SPIRITS', 'HAUNTED',
             'CURSING', 'GRAVEST', 'COFFINS',
-            'MONSTER', 'PUMPKIN', 'WITCHES', 'GOBLINS', 'PHANTOM', 'SPOOKED'
+            'MONSTER', 'PUMPKIN', 'WITCHES', 'GOBLINS', 'PHANTOM', 'SPOOKED',
+            'BANSHEE','COBWEBS','RITUALS','SEANCES','HEXINGS','DEMONIC','SHADOWS','SCARIER','SHRIEKS',
+            'CASKETS','SUCCUBI','INCUBUS','FUNERAL','WRAITHS','SEVERED','ASYLUMS','CHARNEL','EERIEST',
+            'HORRORS','MORGUES','CRYPTIC','OMINOUS','HAUNTER','POSSESS','TORMENT','CULTIST','SORCERY','ENCHANT'
         ],
 
-        9: [ // 💀 Round 2: 9-letter words (Difficult)
+        9: [ // 💀 Round 3: 9-letter words (Difficult)
             'NIGHTMARE', 'FRIGHTFUL', 'TERRORIZE', 'HAUNTINGS', 'DARKENING',
             'BLOODMOON', 'GRAVEYARD', 'HYSTERICS', 'DEMONIACS',
- 'HEADSTONE', 'SPELLBOOK', 'NIGHTFALL', 'SCREAMING', 'ENCHANTED'
+'HEADSTONE', 'SPELLBOOK', 'NIGHTFALL', 'SCREAMING', 'ENCHANTED',
+            'HALLOWEEN','AFTERLIFE','BLOODLUST','MOONLIGHT','CADAVERIC','TOMBSTONE','GHOSTSHIP',
+            'SORCERERS','FLESHLESS','PHANTASMS','HELLHOUND','SEANCEING','WEREWOLFS','GRAVENESS','DARKENERS'
         ],
 
-        12: [ // 🔥 Round 3: 12-letter words (Extreme) — all exactly 12 letters
-            'DEMONOLOGIST', 'TRANSCENDING', 'BLOODTHIRSTY', 'NIGHTCRAWLER',
-             'NECROMANCERS', 'RESURRECTION',
-            'ABOMINATIONS', 'INCANTATIONS', 'SHAPESHIFTER', 'SPIRITUALISM'
-        ]
+    };
+    // Validate word lengths and filter out any mismatches at load time
+    (function validateWordLengths() {
+        const expected = Object.fromEntries(Object.keys(WORDS).map(k => [k, Number(k)]));
+        let removedAny = false;
+        for (const len of Object.keys(expected)) {
+            const list = WORDS[len];
+            const correctLen = expected[len];
+            const filtered = list.filter(w => w && w.length === correctLen);
+            if (filtered.length !== list.length) {
+                removedAny = true;
+                const bad = list.filter(w => !w || w.length !== correctLen);
+                console.warn(`[WORDS] Removed words with wrong length for ${correctLen}:`, bad);
+            }
+            WORDS[len] = filtered;
+        }
+        if (!removedAny) {
+            console.log('[WORDS] All word lists have correct lengths.');
+        }
+    })();
+
+    // Utility to add more words from the browser console safely
+    // Usage: window.addWords(5, ["ghost","witch", ...])
+    window.addWords = function addWords(length, words) {
+        const len = Number(length);
+        if (!WORDS[len]) {
+            console.error(`No word list configured for length ${len}.`);
+            return;
+        }
+        if (!Array.isArray(words)) {
+            console.error('Second argument must be an array of strings.');
+            return;
+        }
+        const before = new Set(WORDS[len]);
+        const added = [];
+        const rejected = [];
+        words.forEach(w => {
+            if (typeof w !== 'string') { rejected.push(w); return; }
+            const up = w.trim().toUpperCase();
+            if (up.length !== len || !/^[A-Z]+$/.test(up)) { rejected.push(w); return; }
+            if (!before.has(up)) { before.add(up); added.push(up); }
+        });
+        WORDS[len] = Array.from(before);
+        ALLOWED_SETS[len] = new Set(WORDS[len]);
+        console.log(`[WORDS] Added ${added.length} words to length ${len}. Rejected ${rejected.length}.`);
+        if (added.length) console.debug('Added:', added);
+        if (rejected.length) console.debug('Rejected:', rejected);
     };
 
     // Build an allowed dictionary per length (answers only; used for offline fallback)
-    const ALLOWED_SETS = {
-        7: new Set(WORDS[7]),
-        9: new Set(WORDS[9]),
-        12: new Set(WORDS[12])
-    };
-    const OFFLINE_FALLBACK_SET = new Set([...WORDS[7], ...WORDS[9], ...WORDS[12]]);
+    const ALLOWED_SETS = Object.fromEntries(
+        Object.keys(WORDS).map(k => [Number(k), new Set(WORDS[k])])
+    );
+    const OFFLINE_FALLBACK_SET = new Set(Object.values(WORDS).flat());
+
+    // Round configuration (three rounds only)
+    const ROUND_LENGTHS = [5, 7, 9];
+    const TOTAL_ROUNDS = ROUND_LENGTHS.length;
 
     // Select one random word per round
-    const SELECTED_WORDS = [
-        WORDS[7][Math.floor(Math.random() * WORDS[7].length)],
-        WORDS[9][Math.floor(Math.random() * WORDS[9].length)],
-        WORDS[12][Math.floor(Math.random() * WORDS[12].length)]
-    ];
+    const SELECTED_WORDS = ROUND_LENGTHS.map(len => {
+        const arr = WORDS[len] || [];
+        return arr[Math.floor(Math.random() * arr.length)];
+    });
 
     // Track game state
     let currentRound = 0;
@@ -42,7 +98,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let isGameOver = false;
     let roundStartTs = 0;
     let roundTimerId = null;
-    let roundTimes = [null, null, null]; // seconds per round
+    let roundTimes = Array(TOTAL_ROUNDS).fill(null); // seconds per round
+    let isTransitioning = false;
 
     const board = document.getElementById('board');
     const message = document.getElementById('message');
@@ -51,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const timerEl = document.getElementById('timer');
     const finalSummaryEl = document.getElementById('final-summary');
 
-    const getCurrentWordLength = () => [7, 9, 12][Math.min(currentRound, 2)];
+    const getCurrentWordLength = () => ROUND_LENGTHS[Math.min(currentRound, TOTAL_ROUNDS - 1)];
     const getTargetWord = () => SELECTED_WORDS[currentRound];
 
     function formatTime(seconds) {
@@ -60,14 +117,23 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${m}:${s}`;
     }
 
+    function getRoundSecondsForRound(roundIndex) {
+        const len = ROUND_LENGTHS[roundIndex];
+        return len === 5 ? 180 : 300; // 3 minutes for 5-letter, 5 minutes for 7/9
+    }
+
+    function getCurrentRoundSeconds() {
+        return getRoundSecondsForRound(currentRound);
+    }
+
     function startRoundTimer() {
         clearInterval(roundTimerId);
-        const ROUND_SECONDS = 300;
+        const ROUND_SECONDS = getCurrentRoundSeconds();
         roundStartTs = Date.now();
         function tick() {
             const elapsed = Math.floor((Date.now() - roundStartTs) / 1000);
             const remaining = Math.max(0, ROUND_SECONDS - elapsed);
-            timerEl.textContent = `Round ${currentRound + 1}/3 — ${formatTime(remaining)}`;
+            timerEl.textContent = `Round ${currentRound + 1}/${TOTAL_ROUNDS} — ${formatTime(remaining)}`;
             if (remaining <= 0) {
                 clearInterval(roundTimerId);
                 handleRoundTimeout();
@@ -79,7 +145,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function recordRoundTimeIfNeeded() {
         if (roundTimes[currentRound] != null) return; // already recorded
-        const elapsed = Math.min(300, Math.ceil((Date.now() - roundStartTs) / 1000));
+        const cap = getCurrentRoundSeconds();
+        const elapsed = Math.min(cap, Math.ceil((Date.now() - roundStartTs) / 1000));
         roundTimes[currentRound] = elapsed;
     }
 
@@ -87,11 +154,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isGameOver) return;
         recordRoundTimeIfNeeded();
         showMessage('⏳ Time\'s up! Moving to next round.', 'error');
-        if (currentRound < 2) {
-            setTimeout(nextRound, 1200);
-        } else {
-            finalizeGame();
-        }
+        advanceToNextRound(1200);
+    }
+
+    function advanceToNextRound(delayMs) {
+        if (isTransitioning || isGameOver) return;
+        isTransitioning = true;
+        clearInterval(roundTimerId);
+        const delay = typeof delayMs === 'number' ? delayMs : 0;
+        setTimeout(() => {
+            if (currentRound < TOTAL_ROUNDS - 1) {
+                nextRound();
+            } else {
+                finalizeGame();
+            }
+            isTransitioning = false;
+        }, delay);
     }
 
     // --- Initialize Board ---
@@ -221,8 +299,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // Validate against general English dictionary (online)
             const validation = await isValidDictionaryWord(currentGuess);
             if (validation.status === 'ok' && !validation.valid) {
-                showMessage('📖 Not a valid English word', 'error');
-                return;
+                // Always allow official answers even if the dictionary doesn't recognize them
+                if (!ALLOWED_SETS[wordLength].has(currentGuess) && currentGuess !== getTargetWord()) {
+                    showMessage('📖 Not a valid English word', 'error');
+                    return;
+                }
             } else if (validation.status === 'offline') {
                 // Allow only answers when offline/unreachable
                 if (!OFFLINE_FALLBACK_SET.has(currentGuess)) {
@@ -294,11 +375,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentGuess === target) {
             showMessage(`🎉 You guessed it: ${target}!`, 'success');
             recordRoundTimeIfNeeded();
-            if (currentRound < 2) {
-                setTimeout(nextRound, 2000);
-            } else {
-                finalizeGame();
-            }
+            advanceToNextRound(2000);
             return;
         }
 
@@ -308,7 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentRow === 6) {
             showMessage(`💀 The word was ${target}`, 'error');
             recordRoundTimeIfNeeded();
-            if (currentRound < 2) setTimeout(nextRound, 2500); else finalizeGame();
+            advanceToNextRound(2500);
         }
     }
 
@@ -318,8 +395,9 @@ document.addEventListener('DOMContentLoaded', () => {
         currentGuess = '';
         initializeBoard();
         initializeKeyboard();
-        showMessage(`🎃 Round ${currentRound + 1} begins!`, 'success');
+        showMessage(`🎃 Round ${currentRound + 1} of ${TOTAL_ROUNDS} begins!`, 'success');
         startRoundTimer();
+        isTransitioning = false;
     }
 
     function nextRound() {
@@ -331,14 +409,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function finalizeGame() {
         clearInterval(roundTimerId);
         isGameOver = true;
-        const total = roundTimes.reduce((a, b) => a + (b || 300), 0);
-        const list = roundTimes.map((t, i) => `Round ${i + 1}: ${formatTime(t || 300)}`).join('<br>');
-        finalSummaryEl.style.display = 'block';
+        const total = roundTimes.reduce((a, b, i) => a + (b || getRoundSecondsForRound(i)), 0);
+        const list = roundTimes.map((t, i) => `Round ${i + 1}: ${formatTime(t || getRoundSecondsForRound(i))}`).join('<br>');
+        finalSummaryEl.style.display = 'flex';
         finalSummaryEl.innerHTML = `
-            <h2>🏁 Final Stats</h2>
-            <p>${list}</p>
-            <p><strong>Total:</strong> ${formatTime(total)}</p>
+            <div class="modal">
+                <h2>🏁 Final Stats</h2>
+                <p>${list}</p>
+                <p><strong>Total:</strong> ${formatTime(total)}</p>
+                <button id="close-summary">Close</button>
+            </div>
         `;
+        const closeBtn = document.getElementById('close-summary');
+        if (closeBtn) closeBtn.onclick = () => { finalSummaryEl.style.display = 'none'; };
         showMessage('🏆 You finished all rounds!', 'success');
     }
 
@@ -348,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentRow = 0;
         currentGuess = '';
         isGameOver = false;
-        roundTimes = [null, null, null];
+        roundTimes = Array(TOTAL_ROUNDS).fill(null);
         finalSummaryEl.style.display = 'none';
         setupRound();
         showMessage('👻 New spooky challenge started!');
